@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+<style>
+  :root, svg {
+    --bg:#ffffff; --ink:#14181f; --mut:#4d5866; --line:#c1cad6;
+    --box:#f4f7fa; --blue:#2563a8; --good:#1a7a4c; --bad:#b4451f;
+    --goodbg:#e6f4ec; --badbg:#fdeee6; --tint:#eaf1f9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root, svg {
+      --bg:#0f1319; --ink:#e6ebf2; --mut:#9dabbc; --line:#33404f;
+      --box:#181f28; --blue:#6ba9f5; --good:#4ade80; --bad:#fb923c;
+      --goodbg:#132a1e; --badbg:#2b1a10; --tint:#152030;
+    }
+  }
+  .bg    { fill: var(--bg); }
+  .box   { fill: var(--box);    stroke: var(--line); stroke-width: 2.5; rx: 12; }
+  .gbox  { fill: var(--goodbg); stroke: var(--good); stroke-width: 3;   rx: 12; }
+  .bbox  { fill: var(--badbg);  stroke: var(--bad);  stroke-width: 3;   rx: 12; }
+  .tbox  { fill: var(--tint);   stroke: var(--blue); stroke-width: 2.5; rx: 12; }
+  .title { fill: var(--ink); font-size: 42px; font-weight: 700; }
+  .sub   { fill: var(--mut); font-size: 26px; }
+  .h     { fill: var(--ink); font-size: 32px; font-weight: 650; }
+  .m     { fill: var(--mut); font-size: 25px; }
+  .s     { fill: var(--mut); font-size: 24px; }
+  .n     { fill: var(--ink); font-size: 48px; font-weight: 700; }
+  .lb    { fill: var(--ink); font-size: 30px; font-weight: 700; }
+  .ln    { stroke: var(--line); stroke-width: 3; fill: none; }
+  .ar    { stroke: var(--line); stroke-width: 3; fill: none; marker-end: url(#a); }
+  .lnb   { stroke: var(--blue); stroke-width: 3; fill: none; }
+  .arb   { stroke: var(--blue); stroke-width: 3; fill: none; marker-end: url(#b); }
+  .rule  { stroke: var(--line); stroke-width: 2; }
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+  </marker>
+  <marker id="b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/>
+  </marker>
+</defs>
+
+<rect class="bg" x="0" y="0" width="1080" height="1350"/>
+
+<text class="title" x="40" y="80">Pipeline Distilasi CoT &amp; Uji Faithfulness</text>
+<text class="sub"   x="40" y="122">Qwen3-0.6B &amp; Qwen3-1.7B · 16 adapter QLoRA · GSM8K + 2 dataset OOD</text>
+<line class="rule" x1="40" y1="150" x2="1040" y2="150"/>
+
+<rect class="box" x="390" y="172" width="300" height="92"/>
+<text class="h" x="540" y="214" text-anchor="middle">GSM8K</text>
+<text class="m" x="540" y="246" text-anchor="middle">1.500 train · 300 test</text>
+<path class="ar" d="M540,264 L540,304"/>
+
+<rect class="box" x="280" y="304" width="520" height="92"/>
+<text class="h" x="540" y="346" text-anchor="middle">Teacher LLM</text>
+<text class="m" x="540" y="378" text-anchor="middle">satu prompt terkunci · temperature 0.3</text>
+
+<path class="ln" d="M540,396 L540,428"/>
+<path class="ln" d="M158,428 L923,428"/>
+<path class="ar" d="M158,428 L158,448"/>
+<path class="ar" d="M413,428 L413,448"/>
+<path class="ar" d="M668,428 L668,448"/>
+<path class="ar" d="M923,428 L923,448"/>
+
+<rect class="box"  x="40"  y="448" width="235" height="176"/>
+<text class="h" x="158" y="494" text-anchor="middle">S0</text>
+<text class="m" x="158" y="528" text-anchor="middle">answer-only</text>
+<text class="n" x="158" y="582" text-anchor="middle">0</text>
+<text class="s" x="158" y="612" text-anchor="middle">token rationale</text>
+
+<rect class="box"  x="295" y="448" width="235" height="176"/>
+<text class="h" x="413" y="494" text-anchor="middle">S1</text>
+<text class="m" x="413" y="528" text-anchor="middle">short CoT</text>
+<text class="n" x="413" y="582" text-anchor="middle">33,1</text>
+<text class="s" x="413" y="612" text-anchor="middle">token rationale</text>
+
+<rect class="gbox" x="550" y="448" width="235" height="176"/>
+<text class="h" x="668" y="494" text-anchor="middle">S2</text>
+<text class="m" x="668" y="528" text-anchor="middle">full CoT</text>
+<text class="n" x="668" y="582" text-anchor="middle">84,7</text>
+<text class="s" x="668" y="612" text-anchor="middle">token rationale</text>
+
+<rect class="bbox" x="805" y="448" width="235" height="176"/>
+<text class="h" x="923" y="494" text-anchor="middle">S3</text>
+<text class="m" x="923" y="528" text-anchor="middle">long CoT</text>
+<text class="n" x="923" y="582" text-anchor="middle">336,2</text>
+<text class="s" x="923" y="612" text-anchor="middle">token rationale</text>
+
+<path class="ln" d="M158,624 L158,652"/>
+<path class="ln" d="M413,624 L413,652"/>
+<path class="ln" d="M668,624 L668,652"/>
+<path class="ln" d="M923,624 L923,652"/>
+<path class="ln" d="M158,652 L923,652"/>
+<path class="ar" d="M540,652 L540,700"/>
+<text class="s" x="562" y="684" font-style="italic">1.500 soal identik di keempat varian</text>
+
+<rect class="box" x="240" y="700" width="600" height="92"/>
+<text class="h" x="540" y="742" text-anchor="middle">QLoRA fine-tuning</text>
+<text class="m" x="540" y="774" text-anchor="middle">2 student × 4 varian × 2 seed = 16 adapter</text>
+
+<path class="ln" d="M540,792 L540,824"/>
+<path class="ln" d="M200,824 L880,824"/>
+<path class="ar" d="M200,824 L200,844"/>
+<path class="ar" d="M540,824 L540,844"/>
+<path class="ar" d="M880,824 L880,844"/>
+
+<rect class="box" x="40"  y="844" width="320" height="92"/>
+<text class="h" x="200" y="886" text-anchor="middle">Akurasi</text>
+<text class="m" x="200" y="918" text-anchor="middle">GSM8K + 2 set OOD</text>
+
+<rect class="tbox" x="380" y="844" width="320" height="92"/>
+<text class="h" x="540" y="886" text-anchor="middle">Faithfulness</text>
+<text class="m" x="540" y="918" text-anchor="middle">150 soal × 2 seed</text>
+
+<rect class="box" x="720" y="844" width="320" height="92"/>
+<text class="h" x="880" y="886" text-anchor="middle">Biaya</text>
+<text class="m" x="880" y="918" text-anchor="middle">token &amp; latensi</text>
+
+<path class="arb" d="M540,936 L540,984"/>
+<text class="s" x="562" y="968" font-style="italic" fill="var(--blue)">tiga uji kontrafaktual</text>
+
+<rect class="tbox" x="40" y="984" width="1000" height="86"/>
+<text class="lb" x="72" y="1038">A · Early answering</text>
+<text class="m"  x="410" y="1038">Rantai dipotong 20–80%, lalu diminta menjawab</text>
+
+<rect class="tbox" x="40" y="1086" width="1000" height="86"/>
+<text class="lb" x="72" y="1140">B · Adding mistakes</text>
+<text class="m"  x="410" y="1140">Satu langkah dirusak, model lanjut dari situ</text>
+
+<rect class="tbox" x="40" y="1188" width="1000" height="86"/>
+<text class="lb" x="72" y="1242">C · Paraphrasing</text>
+<text class="m"  x="410" y="1242">Ditulis ulang, semua angka dipertahankan</text>
+
+<text class="s" x="540" y="1316" text-anchor="middle">Ubah sesuatu di rantai penalarannya — apakah jawabannya ikut berubah?</text>
+</svg>

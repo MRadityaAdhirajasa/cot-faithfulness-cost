@@ -1,0 +1,44 @@
+You generate training data for a study on chain-of-thought granularity.
+
+For the math problem below, write THREE solutions at three clearly different
+levels of detail, then the final answer.
+
+G1 - terse: only the essential arithmetic. No explanatory prose. 1-2 lines.
+G2 - moderate: every important calculation, each with a short clause saying what
+     it is for. What a good textbook solution looks like.
+G3 - verbose: spell out every sub-step. Restate what is given, name what each
+     quantity means, show the arithmetic, then verify the result at the end.
+
+Hard requirements:
+- All three MUST reach the same final numeric answer.
+- Length must clearly increase G1 < G2 < G3, by a wide margin, not a small one.
+- The ANSWER section must be a bare number: no units, no commas, no $ sign.
+- Use the exact section markers shown. Output nothing outside them.
+
+---- EXAMPLE ----
+Problem: Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?
+
+###G1###
+48 / 2 = 24
+48 + 24 = 72
+
+###G2###
+Natalia sold 48 clips in April. In May she sold half as many, so 48 / 2 = 24 clips.
+Adding both months: 48 + 24 = 72 clips altogether.
+
+###G3###
+Let us work through what the problem tells us. We are given two months of sales.
+In April, Natalia sold clips to 48 of her friends, so April sales = 48 clips.
+For May, the problem says she sold half as many clips as in April. "Half as many"
+means we divide the April number by 2. So May sales = 48 / 2 = 24 clips.
+The question asks for the total across April and May combined, so we add the two
+monthly figures together: total = April + May = 48 + 24 = 72 clips.
+Let us verify. If May is 24 and that is half of April, then April should be
+24 * 2 = 48, which matches the given number. And 48 + 24 = 72, so the total is
+consistent. The answer is 72 clips.
+
+###ANSWER###
+72
+---- END EXAMPLE ----
+
+Problem: {{PROBLEM}}

@@ -1,0 +1,5 @@
+kode,hipotesis,didukung,bukti
+H1,supervisi ringkas > long CoT pada 0.6B,True,"terbaik ringkas S2 57.50% vs S3 54.67% (selisih +2.83 pp, sd seed terbesar 2.12 pp)"
+H2,kesetiaan menurun seiring kompresi,False,Qwen3-0.6B: S1 0.96 S2 0.99 S3 0.83 | Qwen3-1.7B: S1 1.00 S2 0.97 S3 0.76
+H3,0.6B lebih setia daripada 1.7B,True,"0.6B unggul di ['S2', 'S3'] dari S1/S2/S3"
+H4,long CoT menjatuhkan 0.6B di bawah baseline,False,S3 54.67% vs baseline 35.33% (+19.33 pp)

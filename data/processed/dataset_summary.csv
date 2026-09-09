@@ -1,0 +1,5 @@
+Varian,Supervisi,N,Mean token rationale,Relatif ke S1
+S0,Answer-only,1500,0.0,-
+S1,Short CoT,1500,33.1,1.00x
+S2,Full CoT,1500,84.7,2.56x
+S3,Long CoT,1500,336.2,10.17x
