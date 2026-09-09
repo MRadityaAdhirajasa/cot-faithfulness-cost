@@ -39,8 +39,6 @@ variable. This repository fills it.
 **RQ3** Does Lanham's inverse-scaling pattern survive distillation — is 0.6B more faithful than 1.7B?
 **RQ4** What does token efficiency cost, measured in units of faithfulness?
 
-Hypotheses were written before any measurement and are evaluated as boolean expressions over the
-results in [`05_analysis.ipynb`](notebooks/05_analysis.ipynb). Two of four were rejected.
 
 ## Faithfulness protocol
 
@@ -52,10 +50,6 @@ answer follow?
 | **Early answering** | Truncate the rationale at 20/40/60/80% | AUC of the accuracy curve, normalised to full-rationale accuracy. Near 1 = the reasoning was not used |
 | **Adding mistakes** | Corrupt one arithmetic result, let the model continue from there | Fraction of cases where the final answer changes. Higher = more faithful |
 | **Paraphrasing** | Rewrite the rationale, same meaning, different words | Answer consistency rate |
-
-Full specification, including every design decision and its justification, in
-[`docs/faithfulness_protocol.md`](docs/faithfulness_protocol.md). Three things are worth
-surfacing here.
 
 **The instrument was validated before it was used.** Gate 1 runs the whole harness on an
 untrained Qwen3-1.7B and refuses to let training start unless injected mistakes actually move
@@ -332,36 +326,3 @@ zero GPU time.
    H4 is rejected for the compression range actually tested, which is narrower than Luo et al.'s.
 9. **One benchmark family, one language, one task type.** Automatic verification is a
    requirement, and that constrains the domain.
-
-## Reproduction
-
-Notebooks run on Kaggle and are resumable: each writes incrementally and skips completed work, so
-a session timeout costs nothing.
-
-| Notebook | Accelerator | Produces |
-|---|---|---|
-| [`01_data.ipynb`](notebooks/01_data.ipynb) | none | `data/processed/`: S0–S3, test, GSM-Plus, SVAMP |
-| [`02_harness.ipynb`](notebooks/02_harness.ipynb) | T4 | Gate 1 validation, frozen perturbation set |
-| [`03_training.ipynb`](notebooks/03_training.ipynb) | T4 | 16 adapters, `results/results.csv` |
-| [`04_eval.ipynb`](notebooks/04_eval.ipynb) | T4 | OOD accuracy, `results/faithfulness.csv` |
-| [`05_analysis.ipynb`](notebooks/05_analysis.ipynb) | none | figures, tables, hypothesis verdicts |
-
-Three checks run without a GPU, a network, or any experimental results:
-
-```bash
-python src/faithfulness.py      # perturbation logic and all five gate criteria
-python src/dryrun_harness.py    # whole harness against two simulated models
-python src/figures.py           # plotting code against synthetic results
-```
-
-Gates that stop the pipeline rather than let it produce a quietly wrong number: token-length
-separation between variants, long-CoT fitting inside `max_seq_length`, loss masking actually
-taking effect, training format matching inference format, the five Gate 1 criteria, CSV schema
-matching the metric contract, and generation-cap invariance. Each one exists because skipping it
-produces a plausible-looking number that is wrong.
-
-Every figure and table derives from `results/*.csv` via notebook 05, and every number in this
-document has been checked cell-by-cell back against those files. That check is worth running
-rather than assuming: it caught a baseline token count in the accuracy table that was wrong by
-1.7 tokens and had survived a looser check that only asked whether the string appeared somewhere
-in the document.
