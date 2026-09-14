@@ -1,52 +1,20 @@
-"""Format prompt dan parser jawaban, dipakai bersama notebook 02/03/04/05.
-
-Kalau notebook training dan notebook evaluasi membangun prompt dengan cara yang sedikit
-berbeda, modelnya dilatih pada struktur yang berbeda dari yang dilihat saat generate. Itu
-degradasi diam-diam yang tidak muncul sebagai error di mana pun. Satu-satunya cara memastikan
-hal itu tidak terjadi adalah memakai fungsi yang sama persis di semua notebook, jadi fungsinya
-tinggal di sini, bukan disalin.
-
-    python src/common.py     # jalankan self-check
-"""
-
 from __future__ import annotations
 
 import re
-
-# Notebook di-paste ke Kaggle, `src/` datang lewat dataset. Dua jalur deploy terpisah, jadi
-# keduanya bisa hanyut tanpa gejala sampai sesuatu meledak di tengah run GPU. Notebook
-# meng-assert konstanta ini di cell config, jadi ketidakcocokan gagal dalam hitungan detik.
-#
-# NAIKKAN setiap kali kontrak antar-modul berubah: kunci baru di metrik `run_tests`,
-# parameter baru di `gate1_checks`, kolom baru di CSV.
-#   1  rilis awal
-#   2  faithfulness.run_tests menambah `orig_acc`; gate1_checks menambah kriteria 5
-#   3  inject_mistake mengenali LaTeX; paraphrase tidak lagi menyentuh blok non-prosa
-#   4  evalkit.load_model memaksa device_map GPU + assert; free() tidak lagi berpura-pura
-#      melepas binding pemanggil (call site wajib `mdl = tk = None; free()`)
-#   5  inject_mistake hanya merusak langkah PENYANGGA (hasilnya dipakai lagi, atau adalah
-#      jawaban akhir model). Sebelumnya baris verifikasi di ekor rationale verbose ikut
-#      terpilih, dan sensitivitas S3 terbaca 38,9% padahal 72,4%. run_tests kini mewajibkan
-#      `answer` di tiap item, dan faithfulness.csv mencatat src_version per baris.
-#   6  langkah penyangga juga harus BUKAN pengulangan nilai yang sudah tertulis sebelumnya;
-#      baris verifikasi yang mengulang jawaban tadinya masih lolos (S3 sisa=0 -> 1,0%)
 SRC_VERSION = 6
 
 INSTR = "Solve the math problem. End your reply with '#### ' followed by the final number.\n\n"
 
-# Penanda masking loss untuk ChatML Qwen3 (dipakai train_on_responses_only di notebook 03).
 INSTRUCTION_PART = "<|im_start|>user\n"
 RESPONSE_PART = "<|im_start|>assistant\n"
 
 
 def target_text(row):
-    """Sisi jawaban. Satu-satunya perbedaan antar varian supervisi ada di `rationale`."""
     r = (row.get("rationale") or "").strip()
     return f"{r}\n#### {row['answer']}" if r else f"#### {row['answer']}"
 
 
 def build_prompt(tokenizer, question, shots=()):
-    """Prompt inference, berakhir tepat di header giliran assistant."""
     msgs = []
     for s in shots:
         msgs += [{"role": "user", "content": INSTR + s["question"]},
@@ -57,21 +25,12 @@ def build_prompt(tokenizer, question, shots=()):
 
 
 def build_train_text(tokenizer, row):
-    """Teks training penuh. Wajib diawali persis oleh `build_prompt` — digate di notebook 03."""
     msgs = [{"role": "user", "content": INSTR + row["question"]},
             {"role": "assistant", "content": target_text(row)}]
     return tokenizer.apply_chat_template(msgs, tokenize=False, enable_thinking=False)
 
 
 def build_prefill(tokenizer, question, partial, shots=(), force_answer=False):
-    """Prompt + potongan rationale yang sudah ditentukan, supaya model melanjutkan dari situ.
-
-    Inilah mekanisme ketiga uji kesetiaan: yang berubah hanya isi `partial`.
-
-    `force_answer=True` menambahkan penanda '#### ' sehingga model hanya perlu memuntahkan
-    angka — dipakai untuk early answering dan paraphrasing, di mana yang ditanyakan adalah
-    "berdasarkan penalaran ini, jawabanmu apa", bukan "lanjutkan menalar".
-    """
     p = build_prompt(tokenizer, question, shots)
     body = (partial or "").strip()
     if force_answer:
@@ -84,11 +43,6 @@ _NUM_RE = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 
 
 def extract_answer(text):
-    """-> (nilai, used_fallback). Ambil angka setelah '####'; kalau tidak ada, angka terakhir.
-
-    `used_fallback` adalah metrik keandalan parser: kalau tinggi, generasi kemungkinan
-    terpotong sebelum sempat menulis penanda, dan akurasinya perlu dicurigai.
-    """
     m = _ANS_RE.search(text or "")
     used_fallback = m is None
     if m is None:
@@ -106,7 +60,6 @@ def extract_answer(text):
 
 
 def is_correct(generation, gold):
-    """Exact match atas nilai terparse, dinormalisasi di kedua sisi."""
     return extract_answer(generation)[0] == extract_answer(str(gold))[0]
 
 
@@ -128,7 +81,6 @@ def demo():
     assert target_text({"rationale": "", "answer": "1"}) == "#### 1"
     assert target_text({"answer": "1"}) == "#### 1"
 
-    # build_prompt/build_prefill butuh tokenizer sungguhan; pakai stub yang meniru ChatML.
     class Tok:
         def apply_chat_template(self, msgs, tokenize=False, add_generation_prompt=False,
                                 enable_thinking=True):
@@ -142,7 +94,6 @@ def demo():
     assert build_prefill(tok, "Q?", "2 + 2 = 4", force_answer=True) == p + "2 + 2 = 4\n#### "
     assert build_prefill(tok, "Q?", "", force_answer=True) == p + "#### "
     assert build_prefill(tok, "Q?", "2 + 2 = 4") == p + "2 + 2 = 4\n"
-    # 1 shot = user+assistant, lalu user asli, lalu header assistant = 4 giliran
     assert build_prompt(tok, "Q?", shots=[row]).count("<|im_start|>") == 4
     assert "#### 4" in build_prompt(tok, "Q?", shots=[row]), "shot tidak membawa target"
 
