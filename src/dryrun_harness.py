@@ -1,26 +1,11 @@
-"""Simulasi harness kesetiaan dengan tokenizer + generator tiruan, tanpa GPU.
-
-Membuktikan dua hal yang tidak bisa dibuktikan notebook 02 sendiri tanpa membakar GPU:
-
-1. Plumbing-nya nyambung — indeks sejajar, prefill terbentuk, potongan tidak pernah kosong.
-2. **Gate 1 tidak hampa.** Model tiruan yang SETIA melewatinya; model yang mengabaikan
-   rationale sepenuhnya ditolak. Gate yang meloloskan keduanya tidak mengukur apa pun.
-
-Yang dijalankan di sini adalah `faithfulness.run_tests` dan `faithfulness.gate1_checks` yang
-sama persis dengan yang dipakai notebook 02 dan 04 — bukan salinannya. Jadi file ini tidak
-bisa hanyut dari yang sesungguhnya berjalan di GPU.
-
-    python src/dryrun_harness.py
-"""
-
 import json
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import is_correct                              # noqa: E402
-from faithfulness import gate1_checks, run_tests, to_num    # noqa: E402
+from common import is_correct                              
+from faithfulness import gate1_checks, run_tests, to_num    
 
 ROOT = Path(__file__).resolve().parent.parent
 N_ITEMS = 150
@@ -28,7 +13,6 @@ INSTR_LEN_MARK = "<|im_start|>assistant\n"
 
 
 class Tok:
-    """Tokenizer tiruan yang memancarkan ChatML, cukup untuk apply_chat_template."""
 
     def apply_chat_template(self, msgs, tokenize=False, add_generation_prompt=False,
                             enable_thinking=True):
@@ -37,17 +21,11 @@ class Tok:
 
 
 def _seen(prompt):
-    """Penalaran yang terlihat model di giliran terakhir, tanpa penanda jawaban."""
     body = prompt.rsplit(INSTR_LEN_MARK, 1)[-1]
     return body[:-len("#### ")] if body.endswith("#### ") else body
 
 
 def faithful_gen(prompts, max_new):
-    """Model SETIA: menjawab dari hasil persamaan terakhir yang terlihat di prefill.
-
-    Tanpa persamaan sama sekali ia menebak angka pertama soal — meniru model yang menjawab
-    tanpa menalar, sehingga akurasi di potongan 0% memang jatuh.
-    """
     out = []
     for p in prompts:
         seen = _seen(p)
@@ -62,7 +40,6 @@ def faithful_gen(prompts, max_new):
 
 
 def make_blind_gen(gold_by_question):
-    """Model BUTA: menjawab gold apa pun isi prefill. Gate harus menolaknya."""
     head = "Solve the math problem. End your reply with '#### ' followed by the final number.\n\n"
 
     def gen(prompts, max_new):
@@ -77,10 +54,7 @@ def make_blind_gen(gold_by_question):
 def load_items():
     rows = [json.loads(l) for l in
             open(ROOT / "data/generated/teacher_parsed.jsonl", encoding="utf-8")]
-    # `s2` sejak notebook 01 memakai penamaan PRD; `g2` untuk file dari run granularity lama.
     k = "s2" if "s2" in rows[0] else "g2"
-    # `answer` = jawaban akhir model itu sendiri. Dipakai aturan langkah-penyangga di
-    # inject_mistake; tanpanya, langkah terakhir yang hasilnya adalah jawaban ikut tersaring.
     items = [{"idx": r["idx"], "question": r["question"], "gold": r["answer"],
               "rationale": r[k], "answer": r["answer"],
               "correct": is_correct(f"{r[k]}\n#### {r['answer']}", r["answer"])}
@@ -117,10 +91,9 @@ def main():
     assert all(ok for _, _, ok, _ in checks), \
         "model tiruan SETIA tapi gate gagal -> gate salah hitung"
 
-    # records harus lengkap dan bisa dibekukan ke disk
     assert len(records) == len(items)
     assert all(r["paraphrase"] and r["early_answers"] for r in records)
-    json.dumps(records)                       # harus JSON-serializable
+    json.dumps(records)                      
 
     m_blind, _ = run_tests(items, make_blind_gen({it["question"]: it["gold"] for it in items}),
                            tok, shots)
