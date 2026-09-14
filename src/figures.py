@@ -1,11 +1,3 @@
-"""Figure dan tabel untuk README serta Bab IV.
-
-Setiap figure ditulis dua kali, varian terang dan gelap, supaya README terbaca di kedua tema
-GitHub. Paletnya dibawa dari proyek granularity sebelumnya, yang kontrasnya sudah divalidasi.
-
-    python src/figures.py      # smoke test dengan data sintetis, tanpa hasil sungguhan
-"""
-
 from __future__ import annotations
 
 import json
@@ -50,22 +42,14 @@ def style(T):
     })
 
 
-# Kolom `model` datang dalam beberapa bentuk: "unsloth/Qwen3-0.6B" dari notebook 03, path
-# direktori adapter dari notebook 04, dan run_id "Qwen3-0.6B|S1|3407" / "baseline|Qwen3-1.7B".
-# Mencari nama modelnya langsung jauh lebih tahan banting daripada memotong pemisah.
 _MODEL_RE = re.compile(r"Qwen3-[\d.]+B")
 
 
 def short(name):
-    """-> nama student, mis. 'Qwen3-0.6B', dari bentuk apa pun di atas."""
     m = _MODEL_RE.search(str(name))
     return m.group(0) if m else str(name).split("/")[-1].split("|")[0]
 
-
-# ------------------------------------------------------------------ statistik
-
 def boot_ci(values, stat=np.mean, n_boot=1000, seed=0, alpha=0.05):
-    """CI persentil bootstrap. Dipakai juga untuk AUC, yang bukan proporsi sederhana."""
     v = np.asarray(values, dtype=float)
     if len(v) == 0 or np.all(np.isnan(v)):
         return (float("nan"), float("nan"))
@@ -75,7 +59,6 @@ def boot_ci(values, stat=np.mean, n_boot=1000, seed=0, alpha=0.05):
 
 
 def load_items(pert_dir, run_id):
-    """Baca set perturbasi beku satu konfigurasi -> DataFrame per soal."""
     p = Path(pert_dir) / f"{run_id.replace('|', '_')}.jsonl"
     if not p.exists():
         return pd.DataFrame()
@@ -83,7 +66,6 @@ def load_items(pert_dir, run_id):
 
 
 def agg_accuracy(df, dataset="gsm8k"):
-    """-> (tabel mean/sd per model x variant, dict baseline per model)."""
     d = df[df.dataset == dataset].copy()
     d["m"] = d.model.map(short)
     base = dict(zip(d[d.variant == "pre-distill"].m,
@@ -118,10 +100,7 @@ def _finish(fig, ax, T, note, path):
     plt.close(fig)
 
 
-# ------------------------------------------------------------------ figure
-
 def fig1(g, base, T, path):
-    """Akurasi vs tingkat supervisi, dengan garis baseline pre-distillation."""
     style(T)
     fig, ax = plt.subplots(figsize=(6.6, 4.3), dpi=200)
     xs = range(len(VARIANTS))
@@ -150,7 +129,6 @@ FAITH_PANELS = [
 
 
 def fig2(fa, T, path):
-    """Tiga panel, satu per uji. Arah 'lebih setia' berbeda per panel, jadi ditulis."""
     style(T)
     fig, axes = plt.subplots(1, 3, figsize=(11.5, 3.9), dpi=200)
     vs = [v for v in VARIANTS if v != "S0"]
@@ -177,7 +155,6 @@ def fig2(fa, T, path):
 
 
 def fig3(g, fa, T, path, faith_col="mistake_sensitivity"):
-    """Figure utama: bidang trade-off akurasi x kesetiaan, ukuran titik = biaya token."""
     style(T)
     fig, ax = plt.subplots(figsize=(7.0, 5.0), dpi=200)
     gf, _ = agg_faith(fa, faith_col)
@@ -195,7 +172,7 @@ def fig3(g, fa, T, path, faith_col="mistake_sensitivity"):
             ax.annotate(r.variant, (r.acc, r.faith), xytext=(9, -3),
                         textcoords="offset points", fontsize=9, color=T["ink2"])
 
-    ax.margins(x=.12, y=.10)          # label varian ditulis di kanan titik, butuh ruang
+    ax.margins(x=.12, y=.10)          
     ax.set_xlabel("akurasi GSM8K (%)")
     ax.set_ylabel(f"kesetiaan — {FAITH_PANELS[1][1]}")
     ax.set_title("Bidang trade-off: akurasi x kesetiaan x biaya token",
@@ -211,7 +188,6 @@ def fig3(g, fa, T, path, faith_col="mistake_sensitivity"):
 
 
 def fig4(pert_dir, fa, T, path):
-    """Kurva early-answering mentah, satu panel per student."""
     style(T)
     models = sorted(fa[fa.variant != "pre-distill"].run_id.map(short).unique())
     fig, axes = plt.subplots(1, max(len(models), 1), figsize=(5.4 * max(len(models), 1), 4.2),
@@ -255,10 +231,7 @@ def build_all(results, faith, outdir, pert_dir=None):
     return g, base, made
 
 
-# ------------------------------------------------------------------ smoke test
-
 def _synthetic(seed=0):
-    """Hasil palsu berbentuk sama dengan yang sungguhan, untuk menguji kode plot."""
     rng = random.Random(seed)
     acc = {("Qwen3-0.6B", v): a for v, a in zip(VARIANTS, (.12, .44, .57, .59))}
     acc |= {("Qwen3-1.7B", v): a for v, a in zip(VARIANTS, (.20, .59, .74, .79))}
