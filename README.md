@@ -297,32 +297,3 @@ model to skip reasoning it already had, and short CoT lands 16.5 points below do
 Report only post-distillation numbers, as most papers do, and the table reads "more supervision
 wins" — coherent, and hiding entirely that half the pipeline destroyed value. The baseline costs
 zero GPU time.
-
-## Limitations
-
-1. **Two seeds.** Most accuracy comparisons are directional, not significance-tested. Only the
-   faithfulness metrics have real intervals, because there n = 150 problems.
-2. **The adding-mistakes test is not length-invariant.** Corrupting step k of a 6-step rationale
-   leaves 5 steps to self-correct; of a 2-step rationale, 1. S1 cannot be compared against S3 at
-   matched depth at all — S1 averages 2.2 steps, so only 38 of its items have two steps
-   remaining, against 383 for S3. S2 vs S3 is comparable; S1 vs S3 is indicative only.
-3. **Paraphrasing is a ceiling-effect null**, for the reason given above. It does not license
-   any claim about surface-form dependence in distilled students.
-4. **One residual paraphrase defect**, `gets paid` → `obtains paid`, in 1 of 150 items (0.7%).
-   Not fixed deliberately: changing the paraphraser after Gate 1 would mean measuring with an
-   instrument different from the validated one.
-5. **Teacher composition.** Kimi K3's free tier ended mid-generation; 45 of 1,500 rows (3.0%)
-   were generated with DeepSeek using the same prompt and temperature. There is no teacher
-   difference *between* supervision variants, since all four densities for a problem come from
-   one call. Per-row provenance in `data/generated/teacher_provenance.csv`.
-6. **Baselines are 4-shot, distilled models 0-shot.** Deliberate and consistent across in-domain
-   and OOD, but it flatters the baseline — and the baseline now carries the headline claim that
-   distillation destroys value for the 1.7B.
-7. **Two of 54 accuracy measurements still hit the token ceiling** (2.3% and 3.0%, Qwen3-0.6B S3
-   on GSM-Plus). Both were re-evaluated at a 1,536 cap and accuracy moved **0.00 points**, so the
-   numbers do not depend on the cap; the residual is the model failing to terminate on a few OOD
-   problems. That failure appears only for S3, only on the 0.6B, and only out of distribution.
-8. **S3 is 336 tokens**, not the thousands that "long CoT" denotes in the degradation literature.
-   H4 is rejected for the compression range actually tested, which is narrower than Luo et al.'s.
-9. **One benchmark family, one language, one task type.** Automatic verification is a
-   requirement, and that constrains the domain.
